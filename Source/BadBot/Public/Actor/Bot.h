@@ -12,15 +12,18 @@ class BADBOT_API ABot : public AActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	ABot();
+	virtual void Tick(float DeltaTime) override;
 
+	// Used to get a reference to the pawn controlled by the player.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target")
+	TObjectPtr<APawn> TargetPawn;
+	
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+private:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr <UStaticMeshComponent> BotMesh;
 
 };
