@@ -17,6 +17,9 @@ ABotPawn::ABotPawn()
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComponent->SetupAttachment(GetRootComponent());
+	SpringArmComponent->bUsePawnControlRotation = true;
+	SpringArmComponent->bEnableCameraLag = true;
+	SpringArmComponent->CameraLagSpeed = 15.f;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArmComponent);
@@ -38,6 +41,11 @@ void ABotPawn::BeginPlay()
 			}
 		}	
 	}
+}
+
+void ABotPawn::RotateMeshToController()
+{
+	PawnMesh->SetWorldRotation(GetController()->GetControlRotation());
 }
 
 FVector ABotPawn::GetDirectionVector(const float& AxisValue, const EMovementDirection& MovementDirection) const
@@ -74,10 +82,19 @@ void ABotPawn::HandleFloatingPawnMovement(const FInputActionValue& InputActionVa
 	}
 }
 
+void ABotPawn::HandleLookInput(const FInputActionValue& InputActionValue)
+{
+	const FVector2D LookDirection = InputActionValue.Get<FVector2D>();
+
+	AddControllerYawInput(LookDirection.X);
+	AddControllerPitchInput(LookDirection.Y);
+}
+
 void ABotPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	RotateMeshToController();
 }
 
 // Called to bind functionality to input
@@ -88,5 +105,6 @@ void ABotPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ABotPawn::HandleFloatingPawnMovement);
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ABotPawn::HandleLookInput);
 	}
 }

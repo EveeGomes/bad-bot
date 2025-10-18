@@ -49,6 +49,9 @@ protected:
 
 	/***************** METHODS *****************/
 	virtual void BeginPlay() override;
+
+	/** Make mesh follow the controller rotation */
+	void RotateMeshToController();
 	
 
 private:
@@ -67,6 +70,7 @@ private:
 	/***************** METHODS *****************/
 	FVector GetDirectionVector(const float& AxisValue, const EMovementDirection& MovementDirection) const;
 
-	// Input callback
+	// Input callbacks
 	void HandleFloatingPawnMovement(const FInputActionValue& InputActionValue);
+	void HandleLookInput(const FInputActionValue& InputActionValue);
 };
