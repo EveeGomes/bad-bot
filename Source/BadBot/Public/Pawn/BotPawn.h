@@ -65,23 +65,8 @@ private:
 	TObjectPtr<UFloatingPawnMovement> FloatingPawnMovementComponent;
 
 	/***************** METHODS *****************/
-	FVector GetRightInputVector(const FInputActionValue& InputActionValue);
-	FVector GetForwardInputVector(const FInputActionValue& InputActionValue);
-	FVector GetUpInputVector(const FInputActionValue& InputActionValue);
-
-	// FVector& GetDirectionVector(const FInputActionValue& InputActionValue, const FString& Direction);
 	FVector GetDirectionVector(const float& AxisValue, const EMovementDirection& MovementDirection) const;
 
 	// Input callback
 	void HandleFloatingPawnMovement(const FInputActionValue& InputActionValue);
-
-	/**
-	 * same: FVector DirectionScaled {0.0f};
-	 *
-	 * same: FVector InputAxisValue
-	 * DirectionVector = Controller to call Get-Direction-Vector(ControllerRotation)
-	 * DirectionScaled = DirectionVector * InputAxisValue.DirectionAxis
-	 *
-	 * return DirectionScaled
-	 */
 };
