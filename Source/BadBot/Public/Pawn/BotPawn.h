@@ -40,6 +40,7 @@ protected:
 
 	/***************** METHODS *****************/
 	virtual void BeginPlay() override;
+	
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta = (AllowPrivateAccess = "true"))
@@ -53,4 +54,21 @@ private:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UFloatingPawnMovement> FloatingPawnMovementComponent;
+
+	/***************** METHODS *****************/
+	FVector& GetRightInputVector(const FInputActionValue& InputActionValue);
+	FVector& GetForwardInputVector(const FInputActionValue& InputActionValue);
+	FVector& GetUpInputVector(const FInputActionValue& InputActionValue);
+
+	FVector& GetDirectionVector(const FInputActionValue& InputActionValue, const FString& Direction);
+
+	/**
+	 * same: FVector DirectionScaled {0.0f};
+	 *
+	 * same: FVector InputAxisValue
+	 * DirectionVector = Controller to call Get-Direction-Vector(ControllerRotation)
+	 * DirectionScaled = DirectionVector * InputAxisValue.DirectionAxis
+	 *
+	 * return DirectionScaled
+	 */
 };

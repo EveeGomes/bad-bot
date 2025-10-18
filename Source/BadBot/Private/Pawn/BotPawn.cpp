@@ -4,6 +4,8 @@
 
 #include "Pawn/BotPawn.h"
 
+#include "Kismet/KismetMathLibrary.h"
+
 // Sets default values
 ABotPawn::ABotPawn()
 {
@@ -36,6 +38,74 @@ void ABotPawn::BeginPlay()
 			}
 		}	
 	}
+}
+
+FVector& ABotPawn::GetRightInputVector(const FInputActionValue& InputActionValue)
+{
+	FVector RightVectorScaled{ 0.0f };
+	
+	if (const AController* Controller = GetController())
+	{
+		FVector RightVector = UKismetMathLibrary::GetRightVector(Controller->GetControlRotation());
+		const FVector2D InputAxisValue = InputActionValue.Get<FVector2D>();
+		
+		RightVectorScaled = RightVector * InputAxisValue.X;
+	}
+	
+	return RightVectorScaled;
+}
+
+FVector& ABotPawn::GetForwardInputVector(const FInputActionValue& InputActionValue)
+{
+	FVector ForwardVectorScaled{ 0.0f };
+
+	if (const AController* Controller = GetController())
+	{
+		FVector2D InputAxisValue = InputActionValue.Get<FVector2D>();
+		FVector ForwardVector = UKismetMathLibrary::GetForwardVector(Controller->GetControlRotation());
+		ForwardVectorScaled = ForwardVector * InputAxisValue.Y;
+	}
+
+	return ForwardVectorScaled;
+}
+
+FVector& ABotPawn::GetUpInputVector(const FInputActionValue& InputActionValue)
+{
+	FVector UpVectorScaled{ 0.0f };
+
+	if (const AController* Controller = GetController())
+	{
+		FVector InputAxisValue = InputActionValue.Get<FVector>();
+		FVector UpVector = UKismetMathLibrary::GetUpVector(Controller->GetControlRotation());
+		UpVectorScaled = UpVector * InputAxisValue.Z;
+	}
+
+	return UpVectorScaled;
+}
+
+FVector& ABotPawn::GetDirectionVector(const FInputActionValue& InputActionValue, const FString& Direction)
+{
+	FVector DirectionVectorScaled{ 0.0f };
+
+	if (const AController* Controller = GetController())
+	{
+		FVector InputAxisValue = InputActionValue.Get<FVector>();
+
+		switch (Direction)
+		{
+			case FString("Right"):
+				DirectionVectorScaled = UKismetMathLibrary::GetRightVector(Controller->GetControlRotation()) * InputAxisValue.X;
+				break;
+			case FString("Forward"):
+				DirectionVectorScaled = UKismetMathLibrary::GetForwardVector(Controller->GetControlRotation()) * InputAxisValue.Y;
+				break;
+			case FString("Up"):
+				DirectionVectorScaled = UKismetMathLibrary::GetUpVector(Controller->GetControlRotation()) * InputAxisValue.Z;
+				break;
+		}
+	}
+
+	return DirectionVectorScaled;
 }
 
 void ABotPawn::Tick(float DeltaTime)
