@@ -11,6 +11,15 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "BotPawn.generated.h"
 
+UENUM(BlueprintType)
+enum class EMovementDirection : uint8
+{
+	Right,
+	Forward,
+	Up
+};
+
+
 UCLASS()
 class BADBOT_API ABotPawn : public APawn
 {
@@ -31,10 +40,10 @@ protected:
 	TObjectPtr<UInputMappingContext> IMCBot;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<UInputAction> Move;
+	TObjectPtr<UInputAction> MoveAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<UInputAction> Look;
+	TObjectPtr<UInputAction> LookAction;
 	
 	/* END INPUT */
 
@@ -56,11 +65,15 @@ private:
 	TObjectPtr<UFloatingPawnMovement> FloatingPawnMovementComponent;
 
 	/***************** METHODS *****************/
-	FVector& GetRightInputVector(const FInputActionValue& InputActionValue);
-	FVector& GetForwardInputVector(const FInputActionValue& InputActionValue);
-	FVector& GetUpInputVector(const FInputActionValue& InputActionValue);
+	FVector GetRightInputVector(const FInputActionValue& InputActionValue);
+	FVector GetForwardInputVector(const FInputActionValue& InputActionValue);
+	FVector GetUpInputVector(const FInputActionValue& InputActionValue);
 
-	FVector& GetDirectionVector(const FInputActionValue& InputActionValue, const FString& Direction);
+	// FVector& GetDirectionVector(const FInputActionValue& InputActionValue, const FString& Direction);
+	FVector GetDirectionVector(const float& AxisValue, const EMovementDirection& MovementDirection) const;
+
+	// Input callback
+	void HandleFloatingPawnMovement(const FInputActionValue& InputActionValue);
 
 	/**
 	 * same: FVector DirectionScaled {0.0f};

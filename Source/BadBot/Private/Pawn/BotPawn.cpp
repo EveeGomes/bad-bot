@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "EnhancedInputSubsystems.h"
-
 #include "Pawn/BotPawn.h"
 
+#include "EnhancedInputSubsystems.h"
+#include "EnhancedInputComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
@@ -32,7 +32,7 @@ void ABotPawn::BeginPlay()
 	{
 		if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 		{
-			if (UEnhancedInputLocalPlayerSubsystem* EnhancedInputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+			if (UEnhancedInputLocalPlayerSubsystem* EnhancedInputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 			{
 				EnhancedInputSubsystem->AddMappingContext(IMCBot, 0);
 			}
@@ -40,72 +40,83 @@ void ABotPawn::BeginPlay()
 	}
 }
 
-FVector& ABotPawn::GetRightInputVector(const FInputActionValue& InputActionValue)
+FVector ABotPawn::GetRightInputVector(const FInputActionValue& InputActionValue)
 {
 	FVector RightVectorScaled{ 0.0f };
 	
-	if (const AController* Controller = GetController())
+	if (GetController())
 	{
-		FVector RightVector = UKismetMathLibrary::GetRightVector(Controller->GetControlRotation());
-		const FVector2D InputAxisValue = InputActionValue.Get<FVector2D>();
-		
-		RightVectorScaled = RightVector * InputAxisValue.X;
+		const FVector RightVector = UKismetMathLibrary::GetRightVector(GetController()->GetControlRotation());
+        const FVector2D InputAxisValue = InputActionValue.Get<FVector2D>();
+        		
+        RightVectorScaled = RightVector * InputAxisValue.X;
 	}
 	
 	return RightVectorScaled;
 }
 
-FVector& ABotPawn::GetForwardInputVector(const FInputActionValue& InputActionValue)
+FVector ABotPawn::GetForwardInputVector(const FInputActionValue& InputActionValue)
 {
 	FVector ForwardVectorScaled{ 0.0f };
 
-	if (const AController* Controller = GetController())
+	if (GetController())
 	{
-		FVector2D InputAxisValue = InputActionValue.Get<FVector2D>();
-		FVector ForwardVector = UKismetMathLibrary::GetForwardVector(Controller->GetControlRotation());
+		const FVector2D InputAxisValue = InputActionValue.Get<FVector2D>();
+		const FVector ForwardVector = UKismetMathLibrary::GetForwardVector(GetController()->GetControlRotation());
 		ForwardVectorScaled = ForwardVector * InputAxisValue.Y;
 	}
 
 	return ForwardVectorScaled;
 }
 
-FVector& ABotPawn::GetUpInputVector(const FInputActionValue& InputActionValue)
+FVector ABotPawn::GetUpInputVector(const FInputActionValue& InputActionValue)
 {
 	FVector UpVectorScaled{ 0.0f };
 
-	if (const AController* Controller = GetController())
+	if (GetController())
 	{
-		FVector InputAxisValue = InputActionValue.Get<FVector>();
-		FVector UpVector = UKismetMathLibrary::GetUpVector(Controller->GetControlRotation());
+		const FVector InputAxisValue = InputActionValue.Get<FVector>();
+		const FVector UpVector = UKismetMathLibrary::GetUpVector(GetController()->GetControlRotation());
 		UpVectorScaled = UpVector * InputAxisValue.Z;
 	}
 
 	return UpVectorScaled;
 }
 
-FVector& ABotPawn::GetDirectionVector(const FInputActionValue& InputActionValue, const FString& Direction)
+FVector ABotPawn::GetDirectionVector(const float& AxisValue, const EMovementDirection& MovementDirection) const
 {
 	FVector DirectionVectorScaled{ 0.0f };
 
-	if (const AController* Controller = GetController())
+	if (GetController())
 	{
-		FVector InputAxisValue = InputActionValue.Get<FVector>();
+		// FVector InputAxisValue = InputActionValue.Get<FVector>();
 
-		switch (Direction)
+		switch (MovementDirection)
 		{
-			case FString("Right"):
-				DirectionVectorScaled = UKismetMathLibrary::GetRightVector(Controller->GetControlRotation()) * InputAxisValue.X;
+			case EMovementDirection::Right: // if x == 1 or x == -1 // x != 0
+				DirectionVectorScaled = UKismetMathLibrary::GetRightVector(GetController()->GetControlRotation()) * AxisValue;
 				break;
-			case FString("Forward"):
-				DirectionVectorScaled = UKismetMathLibrary::GetForwardVector(Controller->GetControlRotation()) * InputAxisValue.Y;
+			case EMovementDirection::Forward: // if y == 1 or y == -1 // y != 0
+				DirectionVectorScaled = UKismetMathLibrary::GetForwardVector(GetController()->GetControlRotation()) * AxisValue;
 				break;
-			case FString("Up"):
-				DirectionVectorScaled = UKismetMathLibrary::GetUpVector(Controller->GetControlRotation()) * InputAxisValue.Z;
+			case EMovementDirection::Up: // if z != 0
+				DirectionVectorScaled = UKismetMathLibrary::GetUpVector(GetController()->GetControlRotation()) * AxisValue;
 				break;
 		}
 	}
 
 	return DirectionVectorScaled;
+}
+
+void ABotPawn::HandleFloatingPawnMovement(const FInputActionValue& InputActionValue)
+{
+	if (FloatingPawnMovementComponent)
+	{
+		const FVector InputAxisValue = InputActionValue.Get<FVector>();
+		if (InputAxisValue.X != 0.0f) FloatingPawnMovementComponent->AddInputVector(GetDirectionVector(InputAxisValue.X, EMovementDirection::Right));
+		if (InputAxisValue.Y != 0.0f) FloatingPawnMovementComponent->AddInputVector(GetDirectionVector(InputAxisValue.Y, EMovementDirection::Forward));
+		if (InputAxisValue.Z != 0.0f) FloatingPawnMovementComponent->AddInputVector(GetDirectionVector(InputAxisValue.Z, EMovementDirection::Up));
+	}
 }
 
 void ABotPawn::Tick(float DeltaTime)
@@ -119,5 +130,9 @@ void ABotPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-}
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ABotPawn::HandleFloatingPawnMovement);
+	}
+}	
 
