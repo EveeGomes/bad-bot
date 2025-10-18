@@ -34,7 +34,6 @@ void ABot::BeginPlay()
 	}
 }
 
-// Called every frame
 void ABot::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -59,6 +58,7 @@ void ABot::InterpRotation(float DeltaTime, float InterpolationSpeed)
 	}
 }
 
+// TODO: implementation lol 
 void ABot::SpawnBlasterBeam(const FName& SocketName)
 {
 	// if (SocketName.IsValid())
